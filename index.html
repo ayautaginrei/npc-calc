@@ -7,22 +7,23 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
   :root {
-    --bg:#f5f5f5; --surface:#ffffff; --surface2:#ececec; --border:#d4d4d4;
-    --fg:#1a1a1a; --fg-dim:#7a7a7a; --accent:#1a1a1a;
-    --draw:#bdbdbd;
+    --bg:#181818; --surface:#222222; --surface2:#2c2c2c; --border:#3c3c3c;
+    --fg:#e8e8e8; --fg-dim:#8a8a8a; --accent:#e8e8e8;
+    --draw:#5a5a5a;
     --mono:'Share Tech Mono',monospace; --sans:'Zen Kaku Gothic New',sans-serif;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;min-height:100vh;-webkit-tap-highlight-color:transparent}
 
-  header{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 24px 16px;position:sticky;top:0;z-index:100}
-  header h1{font-size:20px;font-weight:900;letter-spacing:.05em;color:var(--fg)}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 20px;position:sticky;top:0;z-index:100}
+  header h1{font-size:18px;font-weight:900;letter-spacing:.05em;color:var(--fg)}
   header p{font-size:12px;color:var(--fg-dim);margin-top:4px;letter-spacing:.02em}
+  .header-top{display:flex;flex-direction:column;gap:14px}
 
-  .tab-bar{display:flex;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tab-bar{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .tab-bar::-webkit-scrollbar{display:none}
-  .tab-btn{flex-shrink:0;padding:12px 24px;background:none;border:none;color:var(--fg-dim);font:13px var(--sans);font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap}
-  .tab-btn.active{color:var(--fg);border-bottom-color:var(--fg);font-weight:700}
+  .tab-btn{flex-shrink:0;padding:9px 20px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--fg-dim);font:13px var(--sans);font-weight:500;cursor:pointer;transition:color .2s,border-color .2s,background .2s;white-space:nowrap}
+  .tab-btn.active{color:var(--bg);border-color:var(--fg);background:var(--fg);font-weight:700}
 
   .panel{display:none;padding:20px;max-width:960px;margin:0 auto}
   .panel.active{display:block}
@@ -32,7 +33,7 @@
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 22px;border-radius:4px;border:1px solid var(--fg);font:700 13px var(--sans);cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent}
   .btn:active{transform:scale(.98);opacity:.85}
-  .btn-primary{background:var(--fg);color:#fff}
+  .btn-primary{background:var(--fg);color:#181818}
   .btn:disabled{opacity:.35;cursor:default}
 
   /* ===== LOADING ===== */
@@ -67,9 +68,9 @@
   .result-card.visible{display:block}
   .win-bar-wrap{border-radius:4px;overflow:hidden;height:32px;display:flex;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border)}
   .win-seg{height:100%;display:flex;align-items:center;justify-content:center;font:700 11px var(--mono);transition:width .5s cubic-bezier(.4,0,.2,1);overflow:hidden;white-space:nowrap}
-  .win-seg.p1{background:var(--fg);color:#fff}
-  .win-seg.draw{background:var(--draw);color:#1a1a1a}
-  .win-seg.p2{background:#cfcfcf;color:#1a1a1a}
+  .win-seg.p1{background:var(--fg);color:#181818}
+  .win-seg.draw{background:var(--draw);color:#e8e8e8}
+  .win-seg.p2{background:#454545;color:#e8e8e8}
   .bar-labels{display:flex;justify-content:space-between;font-size:11px;margin-top:4px}
   .bar-labels .lbl-p1{color:var(--fg);font-weight:700}
   .bar-labels .lbl-p2{color:var(--fg-dim);font-weight:700}
@@ -95,11 +96,11 @@
   .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
   .filter-row .search-box{flex:1;min-width:140px;margin-bottom:0}
   .filter-chip{flex-shrink:0;padding:7px 14px;background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--fg-dim);font:12px var(--sans);font-weight:500;cursor:pointer;transition:all .15s}
-  .filter-chip.active{background:var(--fg);border-color:var(--fg);color:#fff}
+  .filter-chip.active{background:var(--fg);border-color:var(--fg);color:#181818}
   .result-count{font-size:11px;color:var(--fg-dim);flex-basis:100%;margin-top:2px}
 
   /* ===== TOAST ===== */
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--fg);border:1px solid var(--fg);color:#fff;font:13px var(--sans);padding:10px 18px;border-radius:20px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--fg);border:1px solid var(--fg);color:#181818;font:13px var(--sans);padding:10px 18px;border-radius:20px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   .hint{font-size:11px;color:var(--fg-dim);margin-top:5px;line-height:1.5}
@@ -108,6 +109,9 @@
   @media (min-width:640px){
     .panel{padding:32px}
     .npc-grid{gap:24px}
+    header{padding:18px 32px}
+    .header-top{flex-direction:row;align-items:center;justify-content:space-between;gap:24px}
+    .tab-bar{flex-shrink:0}
   }
 </style>
 </head>
@@ -120,14 +124,17 @@
 </div>
 
 <header>
-  <h1>NPC対戦シミュレーター</h1>
-  <p id="data-stamp">データ読込中...</p>
+  <div class="header-top">
+    <div>
+      <h1>NPC対戦シミュレーター</h1>
+      <p id="data-stamp">データ読込中...</p>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="showTab('tab-sim')">1対1</button>
+      <button class="tab-btn" onclick="showTab('tab-table')">一覧</button>
+    </div>
+  </div>
 </header>
-
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="showTab('tab-sim')">1対1</button>
-  <button class="tab-btn" onclick="showTab('tab-table')">一覧</button>
-</div>
 
 <!-- ========== TAB: 1対1 ========== -->
 <div id="tab-sim" class="panel active">
