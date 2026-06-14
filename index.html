@@ -10,6 +10,7 @@
     --bg:#181818; --surface:#222222; --surface2:#2c2c2c; --border:#3c3c3c;
     --fg:#e8e8e8; --fg-dim:#8a8a8a; --accent:#e8e8e8;
     --draw:#5a5a5a;
+    --blue:#4a7dd6; --red:#d6544a;
     --mono:'Share Tech Mono',monospace; --sans:'Zen Kaku Gothic New',sans-serif;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -68,15 +69,17 @@
   .result-card.visible{display:block}
   .win-bar-wrap{border-radius:4px;overflow:hidden;height:32px;display:flex;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border)}
   .win-seg{height:100%;display:flex;align-items:center;justify-content:center;font:700 11px var(--mono);transition:width .5s cubic-bezier(.4,0,.2,1);overflow:hidden;white-space:nowrap}
-  .win-seg.p1{background:var(--fg);color:#181818}
+  .win-seg.p1{background:var(--blue);color:#fff}
   .win-seg.draw{background:var(--draw);color:#e8e8e8}
-  .win-seg.p2{background:#454545;color:#e8e8e8}
+  .win-seg.p2{background:var(--red);color:#fff}
   .bar-labels{display:flex;justify-content:space-between;font-size:11px;margin-top:4px}
-  .bar-labels .lbl-p1{color:var(--fg);font-weight:700}
-  .bar-labels .lbl-p2{color:var(--fg-dim);font-weight:700}
+  .bar-labels .lbl-p1{color:var(--blue);font-weight:700}
+  .bar-labels .lbl-p2{color:var(--red);font-weight:700}
   .stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
   .stat-chip{flex:1;min-width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px 10px;text-align:center}
   .stat-chip .num{font:700 18px var(--mono);display:block;color:var(--fg)}
+  .stat-chip.p1 .num{color:var(--blue)}
+  .stat-chip.p2 .num{color:var(--red)}
   .stat-chip .lbl{font-size:10px;color:var(--fg-dim);margin-top:3px;letter-spacing:.04em}
   .verdict{margin-top:14px;padding:12px 14px;border-radius:4px;font:700 13px var(--sans);letter-spacing:.03em;background:var(--surface2);border-left:3px solid var(--fg);color:var(--fg)}
 
@@ -181,9 +184,9 @@
       <span class="lbl-p2" id="lbl-p2">NPC2 勝ち ▶</span>
     </div>
     <div class="stats-row">
-      <div class="stat-chip"><span class="num" id="stat-win">-</span><div class="lbl" id="stat-win-lbl">NPC1 勝</div></div>
+      <div class="stat-chip p1"><span class="num" id="stat-win">-</span><div class="lbl" id="stat-win-lbl">NPC1 勝</div></div>
       <div class="stat-chip"><span class="num" id="stat-draw">-</span><div class="lbl">引分</div></div>
-      <div class="stat-chip"><span class="num" id="stat-loss">-</span><div class="lbl" id="stat-loss-lbl">NPC2 勝</div></div>
+      <div class="stat-chip p2"><span class="num" id="stat-loss">-</span><div class="lbl" id="stat-loss-lbl">NPC2 勝</div></div>
       <div class="stat-chip"><span class="num" id="stat-total">-</span><div class="lbl">総試合</div></div>
     </div>
     <div class="verdict" id="verdict"></div>
@@ -233,7 +236,6 @@ let allEntities = [];      // 全エンティティ表示名
 let tableData = [];        // 現在フィルタ後の行（{p1,p2,win_rate,...}）
 let tableSort = { key: 'win_rate', asc: true };
 let winFilter = 'all';
-const TABLE_PAGE = 200;    // 一度に描画する最大行数
 
 // ============================================================
 // LOAD sim_data.json
@@ -393,8 +395,7 @@ function renderTable() {
   buildTableData();
   const tbody = document.getElementById('tbl-body');
   tbody.innerHTML = '';
-  const rows = tableData.slice(0, TABLE_PAGE);
-  for (const r of rows) {
+  for (const r of tableData) {
     const tr = document.createElement('tr');
     const winCls = r.win_rate > 0.5 ? 'win' : (r.win_rate < 0.5 ? 'loss' : 'draw-c');
     tr.innerHTML = `
@@ -413,11 +414,10 @@ function renderTable() {
     });
     tbody.appendChild(tr);
   }
-  document.getElementById('tbl-count').textContent =
-    `${tableData.length}件${tableData.length > TABLE_PAGE ? `（上位${TABLE_PAGE}件表示）` : ''}`;
-  document.getElementById('tbl-more').textContent =
-    tableData.length > TABLE_PAGE ? `${tableData.length - TABLE_PAGE}件は絞り込みで表示` : '';
+  document.getElementById('tbl-count').textContent = `${tableData.length}件`;
+  document.getElementById('tbl-more').textContent = '';
 }
+
 
 function sortTable(key) {
   if (tableSort.key === key) tableSort.asc = !tableSort.asc;
