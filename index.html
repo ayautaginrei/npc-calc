@@ -517,10 +517,10 @@ function renderTable() {
     const tr = document.createElement('tr');
     const winCls = r.win_rate > 0.5 ? 'win' : (r.win_rate < 0.5 ? 'loss' : 'draw-c');
     tr.innerHTML = `
-      <td class="${winCls}">${pct(r.win_rate)}</td>
-      <td class="draw-c">${pct(r.draw_rate)}</td>
       <td>${esc(r.p1)}</td>
       <td>${esc(r.p2)}</td>
+      <td class="${winCls}">${pct(r.win_rate)}</td>
+      <td class="draw-c">${pct(r.draw_rate)}</td>
       <td>${r.matchups}</td>`;
     tr.style.cursor = 'pointer';
     tr.addEventListener('click', () => {
