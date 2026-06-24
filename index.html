@@ -89,8 +89,6 @@
   th{background:var(--surface2);color:var(--fg-dim);font-size:11px;letter-spacing:.06em;cursor:pointer;user-select:none;font-weight:700}
   th:hover{color:var(--fg)}
   th.sorted{color:var(--fg)}
-  td.col-p1{color:var(--blue);font-weight:600}
-  td.col-p2{color:var(--red);font-weight:600}
   td.win{color:var(--fg);font-weight:700}
   td.loss{color:var(--fg-dim)}
   td.draw-c{color:var(--fg-dim)}
@@ -165,8 +163,8 @@
       <p id="data-stamp">データ読込中...</p>
     </div>
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="showTab('tab-sim')">1対1</button>
-      <button class="tab-btn" onclick="showTab('tab-table')">一覧</button>
+      <button class="tab-btn active" onclick="showTab('tab-sim')">シミュレーター</button>
+      <button class="tab-btn" onclick="showTab('tab-table')">データ一覧</button>
     </div>
   </div>
 </header>
@@ -519,8 +517,6 @@ function renderTable() {
     const tr = document.createElement('tr');
     const winCls = r.win_rate > 0.5 ? 'win' : (r.win_rate < 0.5 ? 'loss' : 'draw-c');
     tr.innerHTML = `
-      <td class="col-p1">${esc(r.p1)}</td>
-      <td class="col-p2">${esc(r.p2)}</td>
       <td class="${winCls}">${pct(r.win_rate)}</td>
       <td class="draw-c">${pct(r.draw_rate)}</td>
       <td>${r.matchups}</td>`;
