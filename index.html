@@ -4,12 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NPC対戦シミュレーター</title>
-<link rel="icon" type="image/png" href="favicon.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
   :root {
     --bg:#181818; --surface:#222222; --surface2:#2c2c2c; --border:#3c3c3c;
-    --fg:#e8e8e8; --fg-dim:#8a8a8a; --accent:#e8e8e8;
+    --fg:#e8e8e8; --fg-dim:#8a8a8a;
     --draw:#5a5a5a;
     --blue:#4a7dd6; --red:#d6544a;
     --mono:'Share Tech Mono',monospace; --sans:'Zen Kaku Gothic New',sans-serif;
@@ -33,9 +32,11 @@
   .section-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-dim);margin-bottom:10px;display:flex;align-items:center;gap:8px}
   .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 22px;border-radius:4px;border:1px solid var(--fg);font:700 13px var(--sans);cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 22px;border-radius:5px;border:1px solid var(--fg);font:700 13px var(--sans);cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent}
   .btn:active{transform:scale(.98);opacity:.85}
   .btn-primary{background:var(--fg);color:#181818}
+  .btn-ghost{background:none;border:1px solid var(--border);color:var(--fg-dim);padding:8px 14px;border-radius:5px;font:13px var(--sans);cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap}
+  .btn-ghost:hover{border-color:var(--fg-dim);color:var(--fg)}
   .btn:disabled{opacity:.35;cursor:default}
 
   /* ===== LOADING ===== */
@@ -46,24 +47,21 @@
   #loading-msg{color:var(--fg-dim);font-size:13px}
 
   /* ===== SIM PANEL ===== */
-  .npc-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start;margin-bottom:20px}
+  .npc-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:start}
   .vs-label{font:900 14px var(--sans);color:var(--fg-dim);text-align:center;padding-top:30px;letter-spacing:.1em}
-  .npc-col label{display:block;font-size:12px;font-weight:700;color:var(--fg-dim);margin-bottom:6px;letter-spacing:.05em}
-
+  .npc-col label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;letter-spacing:.05em}
+  .npc-col.blue label{color:var(--blue)}
+  .npc-col.red  label{color:var(--red)}
   .select-wrapper{position:relative}
   select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--fg);font:13px var(--sans);padding:10px 32px 10px 12px;appearance:none;-webkit-appearance:none;outline:none;transition:border-color .2s;cursor:pointer}
-  select:focus{border-color:var(--fg)}
+  .npc-col.blue select:focus{border-color:var(--blue)}
+  .npc-col.red  select:focus{border-color:var(--red)}
   .select-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--fg-dim);font-size:11px}
-  .npc-meta{font-size:11px;color:var(--fg-dim);margin-top:4px;min-height:16px}
-
   .search-box{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--fg);font:13px var(--sans);padding:9px 12px;outline:none;margin-bottom:6px;-webkit-appearance:none}
   .search-box:focus{border-color:var(--fg)}
   .search-box::placeholder{color:var(--fg-dim)}
-
-  .run-row{display:flex;align-items:center;gap:16px;margin-bottom:24px}
-  .run-status{font-size:12px;color:var(--fg-dim);flex:1}
-  .prog-bar-wrap{height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-top:5px}
-  .prog-bar-fill{height:100%;background:var(--fg);width:0%;border-radius:2px;transition:width .3s}
+  .sim-action-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:14px;margin-bottom:24px}
+  .run-status{font-size:12px;color:var(--fg-dim);margin-right:auto}
 
   /* ===== RESULT ===== */
   .result-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:18px;margin-bottom:16px;display:none}
@@ -77,37 +75,69 @@
   .bar-labels .lbl-p1{color:var(--blue);font-weight:700}
   .bar-labels .lbl-p2{color:var(--red);font-weight:700}
   .stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-  .stat-chip{flex:1;min-width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px 10px;text-align:center}
+  .stat-chip{flex:1;min-width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center}
   .stat-chip .num{font:700 18px var(--mono);display:block;color:var(--fg)}
   .stat-chip.p1 .num{color:var(--blue)}
   .stat-chip.p2 .num{color:var(--red)}
   .stat-chip .lbl{font-size:10px;color:var(--fg-dim);margin-top:3px;letter-spacing:.04em}
   .verdict{margin-top:14px;padding:12px 14px;border-radius:4px;font:700 13px var(--sans);letter-spacing:.03em;background:var(--surface2);border-left:3px solid var(--fg);color:var(--fg)}
 
-  /* ===== TABLE (一覧モード) ===== */
+  /* ===== TABLE ===== */
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px;border:1px solid var(--border);border-radius:6px}
   table{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface)}
   th,td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
   th{background:var(--surface2);color:var(--fg-dim);font-size:11px;letter-spacing:.06em;cursor:pointer;user-select:none;font-weight:700}
   th:hover{color:var(--fg)}
   th.sorted{color:var(--fg)}
+  td.col-p1{color:var(--blue);font-weight:600}
+  td.col-p2{color:var(--red);font-weight:600}
   td.win{color:var(--fg);font-weight:700}
   td.loss{color:var(--fg-dim)}
   td.draw-c{color:var(--fg-dim)}
   tr:hover td{background:var(--surface2)}
 
-  /* ===== FILTER ROW ===== */
-  .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
-  .filter-row .search-box{flex:1;min-width:140px;margin-bottom:0}
-  .filter-chip{flex-shrink:0;padding:7px 14px;background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--fg-dim);font:12px var(--sans);font-weight:500;cursor:pointer;transition:all .15s}
+  /* ===== FILTER AREA ===== */
+  .filter-area{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px}
+  .filter-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--fg-dim);margin-bottom:4px}
+  .filter-search{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--fg);font:13px var(--sans);padding:8px 10px;outline:none;-webkit-appearance:none}
+  .filter-search:focus{border-color:var(--fg)}
+  .filter-search::placeholder{color:var(--fg-dim)}
+
+  /* NPC名絞り込み行（2列） */
+  .filter-npc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* 勝率行 */
+  .filter-wr-row{display:flex;flex-direction:column;gap:6px}
+  .filter-wr-inputs{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .filter-wr-inputs .wr-range-label{font-size:11px;color:var(--fg-dim);white-space:nowrap;flex-shrink:0}
+  .filter-wr-inputs .wr-sep{font-size:12px;color:var(--fg-dim)}
+  /* スライダー */
+  .range-group{display:flex;align-items:center;gap:6px;flex:1;min-width:120px}
+  input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:4px;background:var(--border);border-radius:2px;outline:none;cursor:pointer;min-width:60px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--fg);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--fg);border:none;cursor:pointer}
+  /* 数値テキストボックス */
+  .wr-num{width:52px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--fg);font:12px var(--mono);padding:5px 7px;outline:none;text-align:center;-moz-appearance:textfield;flex-shrink:0}
+  .wr-num::-webkit-inner-spin-button,.wr-num::-webkit-outer-spin-button{-webkit-appearance:none}
+  .wr-num:focus{border-color:var(--fg)}
+  .wr-unit{font-size:11px;color:var(--fg-dim);flex-shrink:0}
+
+  /* チップ・チェック行 */
+  .filter-bottom{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .filter-chip{flex-shrink:0;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--fg-dim);font:12px var(--sans);font-weight:500;cursor:pointer;transition:all .15s}
   .filter-chip.active{background:var(--fg);border-color:var(--fg);color:#181818}
-  .result-count{font-size:11px;color:var(--fg-dim);flex-basis:100%;margin-top:2px}
+  .filter-chip.draw-chip.active{background:var(--draw);border-color:var(--draw);color:#e8e8e8}
+  .result-count{font-size:11px;color:var(--fg-dim);margin-left:auto;white-space:nowrap}
+
+  /* チェックボックス風トグル */
+  .check-label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--fg-dim);flex-shrink:0;user-select:none}
+  .check-label input[type=checkbox]{width:14px;height:14px;accent-color:var(--fg);cursor:pointer}
+  .check-label.active-lbl{color:var(--fg)}
 
   /* ===== TOAST ===== */
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--fg);border:1px solid var(--fg);color:#181818;font:13px var(--sans);padding:10px 18px;border-radius:20px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--fg);border:1px solid var(--fg);color:#181818;font:13px var(--sans);padding:9px 16px;border-radius:5px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-  .hint{font-size:11px;color:var(--fg-dim);margin-top:5px;line-height:1.5}
   .safe-bottom{height:env(safe-area-inset-bottom,16px)}
 
   @media (min-width:640px){
@@ -116,12 +146,13 @@
     header{padding:18px 32px}
     .header-top{flex-direction:row;align-items:center;justify-content:space-between;gap:24px}
     .tab-bar{flex-shrink:0}
+    .filter-npc-row{grid-template-columns:1fr 1fr 1fr 1fr}
+    .filter-wr-inputs{flex-wrap:nowrap}
   }
 </style>
 </head>
 <body>
 
-<!-- ローディング -->
 <div id="loading-overlay">
   <div class="load-spinner"></div>
   <div id="loading-msg">データを読み込んでいます...</div>
@@ -134,8 +165,8 @@
       <p id="data-stamp">データ読込中...</p>
     </div>
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="showTab('tab-sim')">シミュレーター</button>
-      <button class="tab-btn" onclick="showTab('tab-table')">データ一覧</button>
+      <button class="tab-btn active" onclick="showTab('tab-sim')">1対1</button>
+      <button class="tab-btn" onclick="showTab('tab-table')">一覧</button>
     </div>
   </div>
 </header>
@@ -144,33 +175,29 @@
 <div id="tab-sim" class="panel active">
   <div class="section-title">NPC選択</div>
   <div class="npc-grid">
-    <div class="npc-col">
-      <label>NPC 1（青）</label>
+    <div class="npc-col blue">
+      <label>NPC 1（先攻）</label>
       <input type="search" class="search-box" id="search-npc1" placeholder="絞り込み" oninput="filterNpc(1)">
       <div class="select-wrapper">
-        <select id="sel-npc1" onchange="updateNpcMeta()"></select>
+        <select id="sel-npc1"></select>
         <span class="select-arrow">▾</span>
       </div>
-      <div class="npc-meta" id="meta-npc1"></div>
     </div>
     <div class="vs-label">VS</div>
-    <div class="npc-col">
-      <label>NPC 2（赤）</label>
+    <div class="npc-col red">
+      <label>NPC 2（後攻）</label>
       <input type="search" class="search-box" id="search-npc2" placeholder="絞り込み" oninput="filterNpc(2)">
       <div class="select-wrapper">
-        <select id="sel-npc2" onchange="updateNpcMeta()"></select>
+        <select id="sel-npc2"></select>
         <span class="select-arrow">▾</span>
       </div>
-      <div class="npc-meta" id="meta-npc2"></div>
     </div>
   </div>
 
-  <div class="run-row">
+  <div class="sim-action-row">
+    <span class="run-status" id="run-status">NPC を選択して実行</span>
+    <button class="btn-ghost" onclick="clearSim()">クリア</button>
     <button class="btn btn-primary" id="btn-run" onclick="runSim()">実行</button>
-    <div>
-      <div class="run-status" id="run-status">NPC を選択して実行</div>
-      <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-fill"></div></div>
-    </div>
   </div>
 
   <div class="result-card" id="result-card">
@@ -197,21 +224,61 @@
 <!-- ========== TAB: 一覧 ========== -->
 <div id="tab-table" class="panel">
   <div class="section-title">対戦結果一覧</div>
-  <div class="filter-row">
-    <input type="search" class="search-box" id="tbl-search" placeholder="NPC名で絞り込み" oninput="renderTable()">
-    <button class="filter-chip active" id="chip-all"   onclick="setWinFilter('all')">全て</button>
-    <button class="filter-chip"        id="chip-win"   onclick="setWinFilter('win')">勝ち多</button>
-    <button class="filter-chip"        id="chip-lose"  onclick="setWinFilter('lose')">負け多</button>
-    <button class="filter-chip"        id="chip-even"  onclick="setWinFilter('even')">互角</button>
-    <div class="result-count" id="tbl-count"></div>
+
+  <div class="filter-area">
+
+    <!-- NPC名絞り込み：いずれかに含む / 両方に含む -->
+    <div class="filter-npc-row">
+      <div>
+        <div class="filter-label">NPC名（いずれかに含む）</div>
+        <input type="search" class="filter-search" id="tbl-search-any" placeholder="部分一致" oninput="renderTable()">
+      </div>
+      <div>
+        <div class="filter-label">NPC名（両方に含む）</div>
+        <input type="search" class="filter-search" id="tbl-search-both" placeholder="部分一致" oninput="renderTable()">
+      </div>
+    </div>
+
+    <!-- 勝率範囲：スライダー＋テキストボックス連動 -->
+    <div class="filter-wr-row">
+      <div class="filter-label">NPC1 勝率範囲</div>
+      <div class="filter-wr-inputs">
+        <div class="range-group">
+          <input type="number" class="wr-num" id="wr-min-num" min="0" max="100" value="0" oninput="onNumChange('min')">
+          <span class="wr-unit">%</span>
+          <input type="range" id="wr-min-range" min="0" max="100" value="0" oninput="onRangeChange('min')">
+        </div>
+        <span class="wr-sep">〜</span>
+        <div class="range-group">
+          <input type="range" id="wr-max-range" min="0" max="100" value="100" oninput="onRangeChange('max')">
+          <input type="number" class="wr-num" id="wr-max-num" min="0" max="100" value="100" oninput="onNumChange('max')">
+          <span class="wr-unit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- チップフィルタ＋引き分けトグル＋件数 -->
+    <div class="filter-bottom">
+      <button class="filter-chip active" id="chip-all"  onclick="setWinFilter('all')">全て</button>
+      <button class="filter-chip"        id="chip-win"  onclick="setWinFilter('win')">NPC1優勢</button>
+      <button class="filter-chip"        id="chip-even" onclick="setWinFilter('even')">互角</button>
+      <button class="filter-chip"        id="chip-lose" onclick="setWinFilter('lose')">NPC2優勢</button>
+      <label class="check-label" id="draw-check-label" title="引き分け率 0.1% 以上の試合のみ表示">
+        <input type="checkbox" id="chk-draw" onchange="renderTable()">
+        引き分けあり
+      </label>
+      <button class="btn-ghost" onclick="resetFilters()">リセット</button>
+      <span class="result-count" id="tbl-count"></span>
+    </div>
   </div>
+
   <div class="table-wrap">
     <table id="result-table">
       <thead>
         <tr>
-          <th onclick="sortTable('p1')"     id="th-p1">NPC 1 ▲</th>
-          <th onclick="sortTable('p2')"     id="th-p2">NPC 2</th>
-          <th onclick="sortTable('win_rate')" id="th-wr" class="sorted">勝率 ▲</th>
+          <th onclick="sortTable('p1')"        id="th-p1">NPC 1</th>
+          <th onclick="sortTable('p2')"        id="th-p2">NPC 2</th>
+          <th onclick="sortTable('win_rate')"  id="th-wr" class="sorted">勝率 ▲</th>
           <th onclick="sortTable('draw_rate')" id="th-dr">引分率</th>
           <th onclick="sortTable('matchups')"  id="th-mt">試合数</th>
         </tr>
@@ -219,7 +286,6 @@
       <tbody id="tbl-body"></tbody>
     </table>
   </div>
-  <p id="tbl-more" class="hint" style="margin-top:8px;text-align:center"></p>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -229,17 +295,15 @@
 // ============================================================
 // STATE
 // ============================================================
-let SIM_DATA = null;       // { entities, results, generated_at }
-let resultMap = {};        // "p1\tp2" -> result row  (p1 < p2 辞書順)
-let allEntities = [];      // 全エンティティ表示名
-
-// テーブル用
-let tableData = [];        // 現在フィルタ後の行（{p1,p2,win_rate,...}）
+let SIM_DATA = null;
+let resultMap = {};
+let allEntities = [];
+let tableData = [];
 let tableSort = { key: 'win_rate', asc: true };
 let winFilter = 'all';
 
 // ============================================================
-// LOAD sim_data.json
+// LOAD
 // ============================================================
 async function loadSimData() {
   try {
@@ -248,14 +312,12 @@ async function loadSimData() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     SIM_DATA = await res.json();
 
-    // インデックス構築
     allEntities = SIM_DATA.entities || [];
     resultMap = {};
     for (const r of SIM_DATA.results) {
       resultMap[`${r.p1}\t${r.p2}`] = r;
     }
 
-    // UI 初期化
     buildSelects();
     buildTableData();
     renderTable();
@@ -263,7 +325,6 @@ async function loadSimData() {
     const dt = SIM_DATA.generated_at ? ` (生成: ${SIM_DATA.generated_at})` : '';
     document.getElementById('data-stamp').textContent =
       `${allEntities.length}体 / ${SIM_DATA.results.length}ペア${dt}`;
-
     document.getElementById('loading-overlay').classList.add('hidden');
   } catch(e) {
     document.getElementById('loading-msg').textContent =
@@ -272,7 +333,7 @@ async function loadSimData() {
 }
 
 // ============================================================
-// SELECT BUILD (1対1タブ)
+// SIM TAB
 // ============================================================
 function buildSelects() {
   buildOptions(document.getElementById('sel-npc1'), allEntities);
@@ -294,41 +355,32 @@ function filterNpc(num) {
   const val = document.getElementById(`search-npc${num}`).value.toLowerCase();
   const filtered = val ? allEntities.filter(n => n.toLowerCase().includes(val)) : allEntities;
   buildOptions(document.getElementById(`sel-npc${num}`), filtered);
-  updateNpcMeta();
 }
 
-function updateNpcMeta() {
-  for (const num of [1, 2]) {
-    const sel = document.getElementById(`sel-npc${num}`).value;
-    document.getElementById(`meta-npc${num}`).textContent = sel ? '' : '';
-  }
+function clearSim() {
+  document.getElementById('sel-npc1').value = '';
+  document.getElementById('sel-npc2').value = '';
+  document.getElementById('search-npc1').value = '';
+  document.getElementById('search-npc2').value = '';
+  buildOptions(document.getElementById('sel-npc1'), allEntities);
+  buildOptions(document.getElementById('sel-npc2'), allEntities);
+  document.getElementById('run-status').textContent = 'NPC を選択して実行';
+  document.getElementById('result-card').classList.remove('visible');
 }
 
-// ============================================================
-// 1対1 シミュレーション（事前計算済みデータを引く）
-// ============================================================
 function runSim() {
   if (!SIM_DATA) { toast('データが読み込まれていません'); return; }
   const n1 = document.getElementById('sel-npc1').value;
   const n2 = document.getElementById('sel-npc2').value;
-
   if (!n1) { toast('NPC 1 を選択してください'); return; }
   if (!n2) { toast('NPC 2 を選択してください'); return; }
   if (n1 === n2) { toast('同じNPCは選択できません'); return; }
 
-  // 辞書順に p1 < p2 でキーを引く（両方向対応）
   let row = resultMap[`${n1}\t${n2}`];
   let swapped = false;
-  if (!row) {
-    row = resultMap[`${n2}\t${n1}`];
-    swapped = true;
-  }
-  if (!row) {
-    toast('このペアはデータに含まれていません（除外ペアの可能性があります）');
-    return;
-  }
+  if (!row) { row = resultMap[`${n2}\t${n1}`]; swapped = true; }
+  if (!row) { toast('このペアはデータに含まれていません'); return; }
 
-  // swapped の場合は win/loss を入れ替えて n1 視点に
   const win  = swapped ? row.loss : row.win;
   const loss = swapped ? row.win  : row.loss;
   const draw = row.draw;
@@ -337,52 +389,119 @@ function runSim() {
   const drawR = matchups > 0 ? draw / matchups : 0;
   const lossR = matchups > 0 ? loss / matchups : 0;
 
-  showResult({ npc1: n1, npc2: n2, win, draw, loss, matchups, winR, drawR, lossR });
-  document.getElementById('prog-fill').style.width = '100%';
-  document.getElementById('run-status').textContent = '完了';
-}
-
-function showResult({ npc1, npc2, win, draw, loss, matchups, winR, drawR, lossR }) {
   const card = document.getElementById('result-card');
   card.classList.add('visible');
   document.getElementById('bar-p1').style.width   = (winR  * 100) + '%';
-  document.getElementById('bar-draw').style.width  = (drawR * 100) + '%';
+  document.getElementById('bar-draw').style.width = (drawR * 100) + '%';
   document.getElementById('bar-p2').style.width   = (lossR * 100) + '%';
   document.getElementById('bar-p1').textContent   = winR  > 0.08 ? pct(winR)  : '';
-  document.getElementById('bar-draw').textContent  = drawR > 0.05 ? pct(drawR) : '';
+  document.getElementById('bar-draw').textContent = drawR > 0.05 ? pct(drawR) : '';
   document.getElementById('bar-p2').textContent   = lossR > 0.08 ? pct(lossR) : '';
-  document.getElementById('lbl-p1').textContent = `◀ ${npc1} 勝ち`;
-  document.getElementById('lbl-p2').textContent = `${npc2} 勝ち ▶`;
+  document.getElementById('lbl-p1').textContent = `◀ ${n1} 勝ち`;
+  document.getElementById('lbl-p2').textContent = `${n2} 勝ち ▶`;
   document.getElementById('stat-win').textContent   = win;
   document.getElementById('stat-draw').textContent  = draw;
   document.getElementById('stat-loss').textContent  = loss;
   document.getElementById('stat-total').textContent = matchups;
-  document.getElementById('stat-win-lbl').textContent  = npc1;
-  document.getElementById('stat-loss-lbl').textContent = npc2;
-  const v = winR > lossR ? `→ 【${npc1}】の優勢（勝率 ${pct(winR)}）`
-          : lossR > winR ? `→ 【${npc2}】の優勢（勝率 ${pct(lossR)}）`
+  document.getElementById('stat-win-lbl').textContent  = n1;
+  document.getElementById('stat-loss-lbl').textContent = n2;
+  const v = winR > lossR ? `→ 【${n1}】の優勢（勝率 ${pct(winR)}）`
+          : lossR > winR ? `→ 【${n2}】の優勢（勝率 ${pct(lossR)}）`
           : '→ 互角';
   document.getElementById('verdict').textContent = v;
+  document.getElementById('run-status').textContent = '完了';
 }
 
 // ============================================================
-// 一覧タブ
+// 一覧タブ：勝率スライダー＋テキストボックス連動
+// ============================================================
+function clampWr(v) { return Math.max(0, Math.min(100, isNaN(v) ? 0 : v)); }
+
+function onRangeChange(side) {
+  const rng = document.getElementById(`wr-${side}-range`);
+  const num = document.getElementById(`wr-${side}-num`);
+  let v = parseInt(rng.value);
+  // min > max の場合に相手をずらす
+  if (side === 'min') {
+    const maxV = parseInt(document.getElementById('wr-max-range').value);
+    if (v > maxV) { v = maxV; rng.value = v; }
+  } else {
+    const minV = parseInt(document.getElementById('wr-min-range').value);
+    if (v < minV) { v = minV; rng.value = v; }
+  }
+  num.value = v;
+  renderTable();
+}
+
+function onNumChange(side) {
+  const num = document.getElementById(`wr-${side}-num`);
+  const rng = document.getElementById(`wr-${side}-range`);
+  let v = clampWr(parseInt(num.value));
+  if (side === 'min') {
+    const maxV = parseInt(document.getElementById('wr-max-num').value);
+    if (v > maxV) v = maxV;
+  } else {
+    const minV = parseInt(document.getElementById('wr-min-num').value);
+    if (v < minV) v = minV;
+  }
+  num.value = v;
+  rng.value = v;
+  renderTable();
+}
+
+function resetFilters() {
+  document.getElementById('tbl-search-any').value  = '';
+  document.getElementById('tbl-search-both').value = '';
+  document.getElementById('wr-min-range').value = 0;
+  document.getElementById('wr-max-range').value = 100;
+  document.getElementById('wr-min-num').value   = 0;
+  document.getElementById('wr-max-num').value   = 100;
+  document.getElementById('chk-draw').checked = false;
+  winFilter = 'all';
+  ['all','win','even','lose'].forEach(x =>
+    document.getElementById(`chip-${x}`).classList.toggle('active', x === 'all')
+  );
+  renderTable();
+}
+
+// ============================================================
+// 一覧タブ：データ構築・描画
 // ============================================================
 function buildTableData() {
   if (!SIM_DATA) return;
-  const q = document.getElementById('tbl-search').value.toLowerCase();
 
-  tableData = SIM_DATA.results
-    .filter(r => !q || r.p1.toLowerCase().includes(q) || r.p2.toLowerCase().includes(q))
-    .filter(r => {
-      if (winFilter === 'all')  return true;
-      if (winFilter === 'win')  return r.win_rate > 0.5;
-      if (winFilter === 'lose') return r.win_rate < 0.5;
-      if (winFilter === 'even') return r.win_rate === 0.5 || (Math.abs(r.win_rate - 0.5) < 0.01);
-      return true;
-    });
+  const qAny  = document.getElementById('tbl-search-any').value.toLowerCase().trim();
+  const qBoth = document.getElementById('tbl-search-both').value.toLowerCase().trim();
+  const wrMin = parseInt(document.getElementById('wr-min-range').value) / 100;
+  const wrMax = parseInt(document.getElementById('wr-max-range').value) / 100;
+  const drawOnly = document.getElementById('chk-draw').checked;
 
-  // ソート
+  tableData = SIM_DATA.results.filter(r => {
+    // NPC名フィルタ（いずれかに含む）
+    if (qAny) {
+      const inP1 = r.p1.toLowerCase().includes(qAny);
+      const inP2 = r.p2.toLowerCase().includes(qAny);
+      if (!inP1 && !inP2) return false;
+    }
+    // NPC名フィルタ（両方に含む）
+    if (qBoth) {
+      const inP1 = r.p1.toLowerCase().includes(qBoth);
+      const inP2 = r.p2.toLowerCase().includes(qBoth);
+      if (!inP1 && !inP2) return false;  // 少なくとも一方に含む必要あり
+      // 両方に含まれていなくても「いずれかに含む」でOK → 両方必須に変更する場合は以下を有効化
+      // if (!inP1 || !inP2) return false;
+    }
+    // 勝率範囲
+    if (r.win_rate < wrMin || r.win_rate > wrMax) return false;
+    // 引き分けあり
+    if (drawOnly && r.draw_rate < 0.001) return false;
+    // 優勢チップ
+    if (winFilter === 'win')  return r.win_rate > 0.5;
+    if (winFilter === 'lose') return r.win_rate < 0.5;
+    if (winFilter === 'even') return Math.abs(r.win_rate - 0.5) < 0.01;
+    return true;
+  });
+
   tableData.sort((a, b) => {
     const va = a[tableSort.key] ?? '';
     const vb = b[tableSort.key] ?? '';
@@ -400,12 +519,11 @@ function renderTable() {
     const tr = document.createElement('tr');
     const winCls = r.win_rate > 0.5 ? 'win' : (r.win_rate < 0.5 ? 'loss' : 'draw-c');
     tr.innerHTML = `
-      <td>${esc(r.p1)}</td>
-      <td>${esc(r.p2)}</td>
+      <td class="col-p1">${esc(r.p1)}</td>
+      <td class="col-p2">${esc(r.p2)}</td>
       <td class="${winCls}">${pct(r.win_rate)}</td>
       <td class="draw-c">${pct(r.draw_rate)}</td>
       <td>${r.matchups}</td>`;
-    // クリックで1対1タブに飛ぶ
     tr.style.cursor = 'pointer';
     tr.addEventListener('click', () => {
       document.getElementById('sel-npc1').value = r.p1;
@@ -416,19 +534,16 @@ function renderTable() {
     tbody.appendChild(tr);
   }
   document.getElementById('tbl-count').textContent = `${tableData.length}件`;
-  document.getElementById('tbl-more').textContent = '';
 }
-
 
 function sortTable(key) {
   if (tableSort.key === key) tableSort.asc = !tableSort.asc;
   else { tableSort.key = key; tableSort.asc = true; }
-  // ヘッダー更新
-  ['p1','p2','win_rate','draw_rate','matchups'].forEach(k => {
-    const thId = {p1:'th-p1',p2:'th-p2',win_rate:'th-wr',draw_rate:'th-dr',matchups:'th-mt'}[k];
-    const th = document.getElementById(thId);
-    const label = {p1:'NPC 1',p2:'NPC 2',win_rate:'勝率',draw_rate:'引分率',matchups:'試合数'}[k];
-    th.textContent = label + (tableSort.key === k ? (tableSort.asc ? ' ▲' : ' ▼') : '');
+  const ids    = {p1:'th-p1',p2:'th-p2',win_rate:'th-wr',draw_rate:'th-dr',matchups:'th-mt'};
+  const labels = {p1:'NPC 1',p2:'NPC 2',win_rate:'勝率',draw_rate:'引分率',matchups:'試合数'};
+  Object.keys(ids).forEach(k => {
+    const th = document.getElementById(ids[k]);
+    th.textContent = labels[k] + (tableSort.key === k ? (tableSort.asc ? ' ▲' : ' ▼') : '');
     th.className = tableSort.key === k ? 'sorted' : '';
   });
   renderTable();
@@ -436,9 +551,9 @@ function sortTable(key) {
 
 function setWinFilter(f) {
   winFilter = f;
-  ['all','win','lose','even'].forEach(x => {
-    document.getElementById(`chip-${x}`).classList.toggle('active', x === f);
-  });
+  ['all','win','even','lose'].forEach(x =>
+    document.getElementById(`chip-${x}`).classList.toggle('active', x === f)
+  );
   renderTable();
 }
 
@@ -465,9 +580,6 @@ function toast(msg) {
   el._t = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-// ============================================================
-// INIT
-// ============================================================
 loadSimData();
 </script>
 </body>
