@@ -31,6 +31,8 @@
 
   .section-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-dim);margin-bottom:10px;display:flex;align-items:center;gap:8px}
   .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+  .btn-clear{background:none;border:none;color:var(--fg-dim);font-size:16px;line-height:1;cursor:pointer;padding:0 2px;transition:color .15s;flex-shrink:0}
+  .btn-clear:hover{color:var(--fg)}
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 22px;border-radius:5px;border:1px solid var(--fg);font:700 13px var(--sans);cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent}
   .btn:active{transform:scale(.98);opacity:.85}
@@ -89,6 +91,8 @@
   th{background:var(--surface2);color:var(--fg-dim);font-size:11px;letter-spacing:.06em;cursor:pointer;user-select:none;font-weight:700}
   th:hover{color:var(--fg)}
   th.sorted{color:var(--fg)}
+  td.col-p1{font-weight:600}
+  td.col-p2{font-weight:600}
   td.win{color:var(--fg);font-weight:700}
   td.loss{color:var(--fg-dim)}
   td.draw-c{color:var(--fg-dim)}
@@ -171,7 +175,7 @@
 
 <!-- ========== TAB: 1対1 ========== -->
 <div id="tab-sim" class="panel active">
-  <div class="section-title">NPC選択</div>
+  <div class="section-title">NPC選択<button class="btn-clear" onclick="clearSim()" title="クリア">✕</button></div>
   <div class="npc-grid">
     <div class="npc-col blue">
       <label>NPC 1（先攻）</label>
@@ -194,7 +198,6 @@
 
   <div class="sim-action-row">
     <span class="run-status" id="run-status">NPC を選択して実行</span>
-    <button class="btn-ghost" onclick="clearSim()">クリア</button>
     <button class="btn btn-primary" id="btn-run" onclick="runSim()">実行</button>
   </div>
 
@@ -517,8 +520,8 @@ function renderTable() {
     const tr = document.createElement('tr');
     const winCls = r.win_rate > 0.5 ? 'win' : (r.win_rate < 0.5 ? 'loss' : 'draw-c');
     tr.innerHTML = `
-      <td>${esc(r.p1)}</td>
-      <td>${esc(r.p2)}</td>
+      <td class="col-p1">${esc(r.p1)}</td>
+      <td class="col-p2">${esc(r.p2)}</td>
       <td class="${winCls}">${pct(r.win_rate)}</td>
       <td class="draw-c">${pct(r.draw_rate)}</td>
       <td>${r.matchups}</td>`;
